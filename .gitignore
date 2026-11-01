@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+simulator/target/
+reports/
+data/
+.preview/
+*.log
+.idea/
+.vscode/
+.DS_Store
