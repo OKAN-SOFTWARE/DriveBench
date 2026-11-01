@@ -1,4 +1,16 @@
-# Release validation — 0.1.0
+# Release validation
+
+## 0.2.0 — My Garage
+
+Validated October 31, 2026 (America/New_York) on Linux with Python 3.12.14, pytest 9.2.0, OpenJDK 17.0.20, and Maven 3.9.16.
+
+- 84 pytest tests passed, including source-reference boundaries, per-vehicle document selection, missing data, condition gating, finite numbers, CSV validation/limits, unit conversion, timestamp ordering, source-preserving exports, database restart/upgrade, new HTTP routes, and original Java/Python integration scenarios.
+- Browser: saved a reviewed vehicle, compared a manually entered battery-terminal reading under applicable conditions, expanded the manufacturer source explanation, and imported CSV with a flagged reference band, unmet conditions, an unsupported signal, and a missing value.
+- Both manufacturer PDFs were downloaded from Toyota's official document host. The electrical reference tables and engine applicability pages were checked; source hashes are in REFERENCES.md.
+- Garage-only HTTP tests and CLI startup run without Java, including a clean Ctrl+C shutdown. The simulation lab passed all six browser scenarios with 39 assertions. A custom vehicle persisted after a browser reload and displayed reference unavailable.
+- Maven rebuilt the Java simulator and all 10 JUnit tests passed; Java source and tests are unchanged from v0.1. Jenkins controller/agent and Windows execution remain unverified in this environment. No live vehicle hardware or OBD adapter was used.
+
+## 0.1.0
 
 Validated on 2026-11-01 in Linux with OpenJDK 17.0.20, Apache Maven 3.9.16, Python 3.12.14, and pytest 9.2.0.
 

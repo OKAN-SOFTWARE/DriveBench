@@ -8,6 +8,7 @@ from .reports import write_reports
 from .store import RunStore
 from .service import LabService
 from .web import make_server
+from . import __version__
 
 
 def main(argv=None):
@@ -16,17 +17,19 @@ def main(argv=None):
     parser.add_argument("--sim-host", default="127.0.0.1")
     parser.add_argument("--sim-port", type=int, default=0, help="0 launches a managed Java simulator")
     parser.add_argument("--no-build", action="store_true", help="require an existing simulator JAR")
+    parser.add_argument("--garage-only", action="store_true", help="run vehicle references without Java or Maven")
     parser.add_argument("--port", type=int, default=8088, help="local dashboard port")
     parser.add_argument("--db", default=str(ROOT / "data" / "drivebench.db"))
     parser.add_argument("--scenario", default="all", choices=["all", *(s["id"] for s in SCENARIOS)])
     parser.add_argument("--report", default="reports/scenarios.json")
     parser.add_argument("--junit", default="reports/scenarios.xml")
     args = parser.parse_args(argv)
+    if args.garage_only and args.mode == "run": parser.error("--garage-only is for the dashboard; omit it for simulator regression runs")
     if not 0 <= args.sim_port <= 65535 or not 0 <= args.port <= 65535: parser.error("Ports must be between 0 and 65535")
     if not args.sim_port and args.sim_host != "127.0.0.1": parser.error("A managed simulator runs on 127.0.0.1; provide --sim-port for an external simulator")
-    if not args.sim_port and not args.no_build and (not JAR.is_file() or any(p.stat().st_mtime > JAR.stat().st_mtime for p in (ROOT/"simulator").rglob("*.java")) or (ROOT/"simulator/pom.xml").stat().st_mtime > JAR.stat().st_mtime):
+    if not args.garage_only and not args.sim_port and not args.no_build and (not JAR.is_file() or any(p.stat().st_mtime > JAR.stat().st_mtime for p in (ROOT/"simulator").rglob("*.java")) or (ROOT/"simulator/pom.xml").stat().st_mtime > JAR.stat().st_mtime):
         build_simulator()
-    context = SimulatorProcess() if args.sim_port == 0 else nullcontext(None)
+    context = SimulatorProcess() if args.sim_port == 0 and not args.garage_only else nullcontext(None)
     with context as simulator:
         port = simulator.port if simulator else args.sim_port
         if args.mode == "run":
@@ -35,9 +38,9 @@ def main(argv=None):
             print(json.dumps({k: result[k] for k in ["id","status","passed","failed","duration_ms"]}, indent=2))
             return 0 if result["status"] == "passed" else 1
         store = RunStore(args.db)
-        service = LabService(store, args.sim_host, port)
+        service = LabService(store, args.sim_host, port, simulation_enabled=not args.garage_only)
         server = make_server(("127.0.0.1", args.port), service)
-        print(f"\nDriveBench 0.1.0\nDashboard: http://127.0.0.1:{server.server_port}\nSimulator TCP: {args.sim_host}:{port}\nSimulation only · Press Ctrl+C to stop.\n", flush=True)
+        print(f"\nDriveBench {__version__}\nDashboard: http://127.0.0.1:{server.server_port}\nSimulator TCP: {args.sim_host}:{port}\nVehicle references and simulation lab · Press Ctrl+C to stop.\n", flush=True)
         try: server.serve_forever(poll_interval=0.2)
         except KeyboardInterrupt: pass
         finally: server.server_close(); service.close(); store.close()

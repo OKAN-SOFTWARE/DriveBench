@@ -1,0 +1,7 @@
+at,signal,value,unit,condition,ambient_c,rest_minutes,lights_off,measurement_source
+2026-10-31T13:00:00-04:00,battery_v,12.7,V,resting,20,20,true,battery_terminals
+2026-10-31T13:01:00-04:00,battery_v,12.3,V,resting,20,20,true,battery_terminals
+2026-10-31T13:02:00-04:00,battery_v,12.5,V,resting,20,20,true,battery_terminals
+2026-10-31T13:03:00-04:00,battery_v,14.2,V,idle,20,0,false,obd
+2026-10-31T13:04:00-04:00,temperature_c,185,F,idle,20,0,false,obd
+2026-10-31T13:05:00-04:00,battery_v,,V,unknown,,,,unknown

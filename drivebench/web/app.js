@@ -1,10 +1,10 @@
 "use strict";
 const $ = id => document.getElementById(id);
-let selected = null, active = null, catalogLoaded = false, submitting = false, lastHistory = "", lastRun = "", refreshBusy = false;
+let selected = null, active = null, catalogLoaded = false, submitting = false, lastHistory = "", lastRun = "", refreshBusy = false, simulationEnabled = true;
 function element(tag, cls, text) { const node = document.createElement(tag); if (cls) node.className = cls; if (text !== undefined) node.textContent = text; return node; }
 async function api(path, options) { const res = await fetch(path, options); const data = await res.json(); if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`); return data; }
 function showError(message) { $("error").textContent = message || ""; $("error").hidden = !message; }
-function setBusy() { document.querySelectorAll("[data-scenario]").forEach(button => button.disabled = Boolean(active || submitting)); $("run-all").firstChild.textContent = active || submitting ? "Suite in progress " : "Run full suite "; }
+function setBusy() { document.querySelectorAll("[data-scenario]").forEach(button => button.disabled = Boolean(active || submitting || !simulationEnabled)); $("run-all").firstChild.textContent = active || submitting ? "Suite in progress " : "Run full suite "; }
 function formatTime(value) { return new Date(value).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit", second: "2-digit"}); }
 function renderCatalog(scenarios) {
   const container = $("scenarios"); container.replaceChildren();
@@ -16,7 +16,9 @@ function renderCatalog(scenarios) {
   }); catalogLoaded = true;
 }
 function renderTelemetry(simulator) {
-  $("connection").textContent = simulator.connected ? "Simulator connected" : "Simulator offline";
+  $("connection").textContent = simulator.enabled === false ? "Garage mode" : simulator.connected ? "Simulator connected" : "Simulator offline";
+  $("connection-dot").classList.toggle("idle", simulator.enabled === false);
+  $("lab-mode-note").hidden = simulator.enabled !== false;
   $("connection-dot").classList.toggle("connected", simulator.connected); $("endpoint").textContent = simulator.endpoint;
   const state = simulator.telemetry, signals = state?.sensors;
   [["temperature", "temperature_c", 160], ["voltage", "battery_v", 20], ["speed", "speed_kph", 240]].forEach(([id, key, max]) => {
@@ -72,7 +74,7 @@ function renderRun(run) {
 async function refresh() {
   if (refreshBusy) return; refreshBusy = true;
   try {
-    const status = await api("/api/status"); active = status.active_id; renderTelemetry(status.simulator);
+    const status = await api("/api/status"); active = status.active_id; simulationEnabled = status.simulator.enabled; renderTelemetry(status.simulator);
     if (!catalogLoaded) renderCatalog(status.scenarios);
     if (!selected && status.history.length) selected = active || status.history[0].id;
     renderHistory(status.history); setBusy();

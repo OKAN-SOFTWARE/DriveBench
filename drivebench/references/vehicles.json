@@ -1,0 +1,38 @@
+{
+  "version": "2026-10-31.1",
+  "profiles": [
+    {
+      "id": "toyota-corolla-2016-us",
+      "make": "Toyota", "year": 2016, "model": "Corolla", "engine": "1.8 L gasoline (2ZR-FE / 2ZR-FAE)", "powertrain": "gasoline", "market": "US",
+      "reference_id": "toyota-resting-battery-v1",
+      "source": {
+        "publisher": "Toyota", "title": "2016 Corolla Owner's Manual", "document": "OM12J84U", "page": 555, "engine_page": 552,
+        "url": "https://assets.sia.toyota.com/publications/en/om-s/OM12J84U/pdf/OM12J84U.pdf#page=555",
+        "reviewed_at": "2026-10-31", "sha256": "c03210ea435a10f1b454f1be582bc5be0002c830ec049dd48633a4f53071027c"
+      }
+    },
+    {
+      "id": "toyota-corolla-im-2017-us",
+      "make": "Toyota", "year": 2017, "model": "Corolla iM", "engine": "1.8 L gasoline (2ZR-FAE)", "powertrain": "gasoline", "market": "US",
+      "reference_id": "toyota-resting-battery-v1",
+      "source": {
+        "publisher": "Toyota", "title": "2017 Corolla iM Owner's Manual", "document": "OM12K64U", "page": 329, "engine_page": 326,
+        "url": "https://assets.sia.toyota.com/publications/en/om-s/OM12K64U/pdf/OM12K64U.pdf#page=329",
+        "reviewed_at": "2026-10-31", "sha256": "d38feeb8cab5c3fb5506241ee0e81ec4f24b6c0645bdd0aad6afd8f9b800847d"
+      }
+    }
+  ],
+  "references": {
+    "toyota-resting-battery-v1": {
+      "signal": "battery_v", "unit": "V", "title": "Resting battery open-circuit voltage",
+      "conditions": "At 20 °C (68 °F), 20 minutes after the engine and all lights are switched off. Use a battery-terminal voltmeter reading; ECU/OBD supply voltage is not substituted.",
+      "ambient_c": 20, "rest_minutes": 20,
+      "bands": [
+        {"min": 12.6, "max": 12.8, "label": "Full-charge reference band", "flagged": false},
+        {"min": 12.2, "max": 12.4, "label": "Half-charge reference band", "flagged": true},
+        {"min": 11.8, "max": 12.0, "label": "Discharged reference band", "flagged": true}
+      ],
+      "scope": "A voltage-reference comparison, not a battery health test or a diagnosis. Values between published bands are left unclassified. No temperature compensation or other-model extrapolation is applied."
+    }
+  }
+}

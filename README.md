@@ -1,12 +1,38 @@
 # DriveBench
 
-**A virtual vehicle test lab built with Java and Python.**
+**A local vehicle-reference workspace and virtual test lab, built with Python and Java.**
 
-Inject thermal, voltage, and communication faults into a Java simulator. A Python automation runner verifies the behavior, records correlated requests and responses, and produces JSON and JUnit XML reports. A local dashboard lets you inspect each assertion and protocol exchange.
+Save vehicles in My Garage, enter measurements or import CSV recordings, and inspect source-backed reference comparisons. Every result explains the applicable conditions and source. The Simulation Lab also lets you inject thermal, voltage, and communication faults into a Java simulator, run Python automation, and export JSON and JUnit XML reports.
 
-> Software simulation only. Communication uses a custom JSON-line protocol over loopback TCP/IP. This project does not implement CAN, LIN, UDS, DoIP, or a physical automotive Ethernet test system. `DB_TEMP_HIGH` and `DB_VOLT_LOW` are fictional project diagnostic codes.
+> v0.2 includes two reviewed Toyota owner-manual profiles for **resting battery voltage only**. Other vehicles and signals show **reference unavailable**. Results are reference comparisons, without an overall vehicle-health verdict. The separate simulation lab uses fictional thresholds and custom loopback TCP/IP; it does not implement CAN, LIN, UDS, DoIP, or live OBD-II connectivity.
 
-## Start on Windows
+## New in v0.2 — My Garage
+
+Start the vehicle-reference workspace with **Python 3.11+ only**:
+
+```powershell
+python start.py --garage-only
+```
+
+Open [http://127.0.0.1:8088](http://127.0.0.1:8088). Choose a reviewed profile or save a custom vehicle by brand, year, model, engine, powertrain, and market. Enter manual readings or import a CSV, then expand a result to see its rule, measurement conditions, and manufacturer source. Export a session as JSON or a readable text report.
+
+| Capability | Behavior |
+| --- | --- |
+| Reviewed profiles | US-market 2016 Toyota Corolla (1.8 L 2ZR-FE / 2ZR-FAE) and 2017 Corolla iM (1.8 L 2ZR-FAE) |
+| Battery reference | Discrete full-charge, half-charge, and discharged voltage bands from each vehicle's Toyota owner manual |
+| Conditions | At 20 °C, measured 20 minutes after engine and all lights switch-off; a battery-terminal voltmeter reading is required |
+| Coverage gaps | No charging-voltage, coolant, RPM, speed, or other-vehicle limits are inferred |
+| Input | Manual values or strict UTF-8 CSV; voltage, coolant temperature, RPM, and speed; explicit missing readings |
+| Units | V, C/F, rpm, km/h/mph; temperature and speed are normalized before reporting |
+| Persistence | Up to 100 vehicles; latest 100 assessment reports, separately from simulator test history |
+
+The default form conditions are **not recorded**. They must be supplied before a resting-battery reference can apply. Values between the documented bands remain unclassified; the application does not estimate a charge percentage or diagnose a component. A custom vehicle can record measurements, but cannot inherit another vehicle's limits by name similarity.
+
+Use [the CSV example](examples/resting-battery.csv) to explore the interface. **Its readings are fictional examples, not measurements from your vehicle.** Replace them with your own readings. CSV imports validate every row before saving anything; timestamps require `Z` or an explicit UTC offset. A blank value means missing, never zero or healthy.
+
+Reference details, exact source pages, document hashes, and scope are documented in [REFERENCES.md](docs/REFERENCES.md). Reports preserve their vehicle, source, and catalog version so later catalog updates do not rewrite historical interpretations.
+
+## Start the complete garage + simulator on Windows
 
 Requirements: **JDK 17+**, **Maven 3.9+**, and **Python 3.11+** on your PATH. Java 21 works. No Python packages are required to run the dashboard. The first Maven build requires internet access to download dependencies.
 
@@ -25,7 +51,7 @@ mvn -B -f simulator/pom.xml verify
 python start.py --no-build
 ```
 
-Open **[http://127.0.0.1:8088](http://127.0.0.1:8088)** and select **Run full suite**. Keep the terminal open. Press **Ctrl+C** to stop both the dashboard and its Java simulator.
+Open **[http://127.0.0.1:8088](http://127.0.0.1:8088)**, select **Simulation Lab**, then **Run full suite**. My Garage remains available in its own workspace. Keep the terminal open. Press **Ctrl+C** to stop both the dashboard and its Java simulator.
 
 You can also double-click `Start-DriveBench.cmd`. It builds Java and starts the dashboard. If Windows uses `py` instead of `python`, run `py start.py --no-build` after building.
 
@@ -137,7 +163,7 @@ DriveBench/
   Start-DriveBench.cmd
 ```
 
-Run history is saved under `data/drivebench.db`, with the latest 50 completed runs retained. On restart, unfinished runs become `interrupted`. The CLI reports are separate from dashboard history. Export reports before deleting the database.
+All local records are saved under `data/drivebench.db`. Upgrading an existing v0.1 database adds garage tables without replacing simulator runs. The latest 50 completed simulator runs and latest 100 vehicle assessment reports are retained independently. On restart, unfinished simulator runs become `interrupted`. The CLI reports are separate from dashboard history. Export reports before deleting the database. Vehicle identities and saved reports are immutable in v0.2; editing/removal controls are future work.
 
 ## Troubleshooting
 
@@ -155,6 +181,8 @@ Run history is saved under `data/drivebench.db`, with the latest 50 completed ru
 See [the protocol contract](docs/PROTOCOL.md) and [the HTTP API](docs/API.md) for exact request formats and limits.
 
 ## Useful next extensions
+
+VIN-assisted vehicle identification, more reviewed vehicle references, recording charts/replay, and live OBD-II adapters are future extensions. NHTSA VIN decoding could help identify vehicles; it would not itself supply diagnostic reference limits. Real CAN/LIN communication and hardware validation remain separate future work.
 
 Add a new sensor and failure rule, parameterize threshold tests, introduce a replayable scenario file format, or add a transport adapter for a virtual CAN bus. A future CAN adapter should use actual CAN tooling and separate protocol-specific tests; the current TCP simulator is not a substitute for that experience.
 

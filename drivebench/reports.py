@@ -28,3 +28,21 @@ def write_reports(run, json_path, xml_path):
         if target:
             path = Path(target); path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(content)
+
+
+def assessment_text(report):
+    vehicle = report["vehicle"]
+    lines = ["DriveBench measurement reference report", report["name"],
+             f"Vehicle: {vehicle['year']} {vehicle['make']} {vehicle['model']} · {vehicle['engine']} · {vehicle['market']}",
+             f"Created: {report['created_at']}", f"Catalog: {report['catalog_version']}", report["scope"], ""]
+    for row in report["readings"]:
+        lines += [f"{row['at']} · {row['signal']} · {row['value'] if row['value'] is not None else 'MISSING'} {row['unit']}",
+                  row["label"], row["explanation"],
+                  f"Conditions: {row['condition']}; ambient {row['ambient_c']} °C; rest {row['rest_minutes']} min; lights off {row['lights_off']}; source {row['measurement_source']}"]
+        if row["unmet_conditions"]: lines.append("Unmet: "+"; ".join(row["unmet_conditions"]))
+        if row["reference"]: lines += [row["reference"]["conditions"], row["reference"]["scope"]]
+        if row["source"]:
+            source=row["source"]
+            lines += [f"Reference: {source['title']} · {source['document']} · page {source['page']}",source["url"],f"Source SHA256: {source['sha256']}"]
+        lines.append("")
+    return "\n".join(lines).encode("utf-8")

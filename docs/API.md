@@ -1,5 +1,7 @@
 # Local dashboard API
 
+For My Garage, CSV/manual measurements, and reference report routes added in v0.2, see [GARAGE_API.md](GARAGE_API.md).
+
 Default origin: `http://127.0.0.1:8088`. All responses disable caching. The service binds only to loopback, validates the Host header, rejects cross-site writes, and requires `X-DriveBench: 1` for mutations. JSON is served with explicit content types; script/style assets are local.
 
 | Method | Path | Result |
